@@ -40,7 +40,9 @@ app.post('/create-payment-intent', async (req, res) => {
       // amount = x - (x * 0.0175 + 0.30)
       // amount = x * 0.9825 - 0.30
       // x = (amount + 0.30) / 0.9825
-      totalAmount = Math.ceil((amount + 0.30) / 0.9825);
+      const exactAmount = (amount + 0.30) / 0.9825;
+      // Round to nearest cent (not nearest dollar!)
+      totalAmount = Math.round(exactAmount * 100) / 100;
     }
 
     // Convert to cents for Stripe
