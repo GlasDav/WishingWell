@@ -13,7 +13,16 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(cors());
+
+// Use JSON parser for all routes except webhook
+app.use((req, res, next) => {
+  if (req.originalUrl === '/webhook') {
+    next();
+  } else {
+    bodyParser.json()(req, res, next);
+  }
+});
 app.use(express.static('public'));
 
 // Serve the main page
