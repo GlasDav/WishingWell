@@ -1,5 +1,5 @@
 // Configuration - Update with your Stripe publishable key
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51SjzGDDPv7GYNpF1qdOR3lMRuRM98fFNeKjEusdrJUKbsY9jASjCyKXtTPCjTzuTl9q7nx9wLoX0Vm1rbOYY7hGx00utsfd6uC';
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51SjzG0D6A6ICTwOT7Dk7udv9fSamuBJiMGck0w19QE4S8Bp8wXoR962qJy32cLSiQEQYNQtfWZLkpPHrBniNwdSY00pjTlxRnQ';
 
 // Initialize Stripe
 const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
