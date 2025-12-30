@@ -124,7 +124,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
               <h2 style="color: #ff6b9d;">Thank you, ${guestName}!</h2>
               <p>Your generous wedding gift of <strong>$${amount} AUD</strong> has been received.</p>
               ${guestMessage ? `<p style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-style: italic;">"${guestMessage}"</p>` : ''}
-              <p>David and Danielle are so grateful for your love and support on their special day.</p>
+              <p>David and Dani are so grateful for your love and support on their special day.</p>
               <p style="color: #6d5674; font-size: 14px; margin-top: 30px;">Made with 💕 for David & Danielle's wedding</p>
             </div>
           `
