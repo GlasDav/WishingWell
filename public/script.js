@@ -100,7 +100,7 @@ form.addEventListener('submit', async (event) => {
         const coverFees = coverFeesCheckbox.checked;
 
         // Create payment intent on the server
-        const response = await fetch('http://localhost:3000/create-payment-intent', {
+        const response = await fetch('https://wishingwell.onrender.com/create-payment-intent', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
