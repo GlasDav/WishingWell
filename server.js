@@ -115,7 +115,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
 
       // Send confirmation email to guest (if they provided email)
       if (guestEmail) {
-        await resend.emails.send({
+        const { error } = await resend.emails.send({
           from: process.env.FROM_EMAIL || 'noreply@wishingwell.com',
           to: guestEmail,
           subject: 'Thank you for your wedding gift! 💝',
@@ -129,12 +129,17 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
             </div>
           `
         });
-        console.log(`📧 Confirmation email sent to ${guestEmail}`);
+
+        if (error) {
+          console.error('❌ Error sending confirmation email:', error);
+        } else {
+          console.log(`📧 Confirmation email sent to ${guestEmail}`);
+        }
       }
 
       // Send notification email to couple
       if (process.env.COUPLE_EMAIL) {
-        await resend.emails.send({
+        const { error } = await resend.emails.send({
           from: process.env.FROM_EMAIL || 'noreply@wishingwell.com',
           to: process.env.COUPLE_EMAIL,
           subject: `New wedding gift received from ${guestName}! 🎉`,
@@ -150,7 +155,12 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
             </div>
           `
         });
-        console.log(`📧 Notification email sent to couple`);
+
+        if (error) {
+          console.error('❌ Error sending notification email:', error);
+        } else {
+          console.log(`📧 Notification email sent to couple`);
+        }
       }
     } catch (emailError) {
       console.error('Error sending emails:', emailError);
