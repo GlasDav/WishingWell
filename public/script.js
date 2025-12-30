@@ -96,6 +96,7 @@ form.addEventListener('submit', async (event) => {
     try {
         // Get form data
         const guestName = document.getElementById('guest-name').value;
+        const guestEmail = document.getElementById('guest-email').value;
         const guestMessage = document.getElementById('guest-message').value;
         const coverFees = coverFeesCheckbox.checked;
 
@@ -108,6 +109,7 @@ form.addEventListener('submit', async (event) => {
             body: JSON.stringify({
                 amount,
                 guestName,
+                guestEmail,
                 guestMessage,
                 coverFees,
             }),

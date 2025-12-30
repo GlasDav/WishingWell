@@ -1,9 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { Resend } = require('resend');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +24,7 @@ app.get('/', (req, res) => {
 // Create payment intent
 app.post('/create-payment-intent', async (req, res) => {
   try {
-    const { amount, guestName, guestMessage, coverFees } = req.body;
+    const { amount, guestName, guestEmail, guestMessage, coverFees } = req.body;
 
     // Validate amount
     if (!amount || amount < 1) {
@@ -49,6 +52,7 @@ app.post('/create-payment-intent', async (req, res) => {
       currency: 'aud',
       metadata: {
         guestName: guestName || 'Anonymous',
+        guestEmail: guestEmail || '',
         guestMessage: guestMessage || '',
         originalAmount: amount,
         feesCovered: coverFees
@@ -90,11 +94,57 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
     console.log(`Guest: ${paymentIntent.metadata.guestName}`);
     console.log(`Amount: $${(paymentIntent.amount / 100).toFixed(2)} AUD`);
     console.log(`Message: ${paymentIntent.metadata.guestMessage}`);
-    
-    // Here you could:
-    // - Send an email notification to the couple
-    // - Store the payment in a database
-    // - Log to a file
+
+    // Send email notifications
+    try {
+      const guestEmail = paymentIntent.metadata.guestEmail;
+      const guestName = paymentIntent.metadata.guestName;
+      const amount = (paymentIntent.amount / 100).toFixed(2);
+      const guestMessage = paymentIntent.metadata.guestMessage;
+
+      // Send confirmation email to guest (if they provided email)
+      if (guestEmail) {
+        await resend.emails.send({
+          from: process.env.FROM_EMAIL || 'noreply@wishingwell.com',
+          to: guestEmail,
+          subject: 'Thank you for your wedding gift! 💝',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #ff6b9d;">Thank you, ${guestName}!</h2>
+              <p>Your generous wedding gift of <strong>$${amount} AUD</strong> has been received.</p>
+              ${guestMessage ? `<p style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-style: italic;">"${guestMessage}"</p>` : ''}
+              <p>David and Danielle are so grateful for your love and support on their special day.</p>
+              <p style="color: #6d5674; font-size: 14px; margin-top: 30px;">Made with 💕 for David & Danielle's wedding</p>
+            </div>
+          `
+        });
+        console.log(`📧 Confirmation email sent to ${guestEmail}`);
+      }
+
+      // Send notification email to couple
+      if (process.env.COUPLE_EMAIL) {
+        await resend.emails.send({
+          from: process.env.FROM_EMAIL || 'noreply@wishingwell.com',
+          to: process.env.COUPLE_EMAIL,
+          subject: `New wedding gift received from ${guestName}! 🎉`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #ff6b9d;">New Gift Received!</h2>
+              <p><strong>From:</strong> ${guestName}</p>
+              <p><strong>Amount:</strong> $${amount} AUD</p>
+              ${guestMessage ? `<p><strong>Message:</strong></p><p style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-style: italic;">"${guestMessage}"</p>` : ''}
+              ${guestEmail ? `<p><strong>Email:</strong> ${guestEmail}</p>` : ''}
+              <p style="margin-top: 20px;"><a href="https://dashboard.stripe.com/payments" style="background: #ff6b9d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">View in Stripe Dashboard</a></p>
+              <p style="color: #6d5674; font-size: 14px; margin-top: 30px;">💝 Your Wishing Well</p>
+            </div>
+          `
+        });
+        console.log(`📧 Notification email sent to couple`);
+      }
+    } catch (emailError) {
+      console.error('Error sending emails:', emailError);
+      // Don't fail the webhook if email fails
+    }
   }
 
   res.json({ received: true });
